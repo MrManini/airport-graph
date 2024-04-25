@@ -45,17 +45,19 @@ class GraphMatrix:
         names = [self.names[index] for index in indices]
         return names, top_10
 
-    def find_path(self, vertex1: str, vertex2: str) -> str:
+    def find_path(self, vertex1: str, vertex2: str) -> List[str]:
         index1 = self.names.index(vertex1)
         index2 = self.names.index(vertex2)
-        if self.cost_mtrx[index1][index2] == float('inf'):
+        if self.cost_mtrx[index1][index2] != float('inf'):
             if vertex2 == self.path_mtrx[index1][index2]:
-                return vertex1 + " -> " + vertex2
+                return [vertex1, vertex2]
             else:
                 mid_point = self.path_mtrx[index1][index2]
-                return self.find_path(vertex1, mid_point) + " -> " + vertex2
+                path = self.find_path(vertex1, mid_point)
+                path.append(vertex2)
+                return path
         else:
-            return ""
+            return []
             
 G = GraphMatrix(['0', '1', '2', '3', '4', '5', '6', '7'])
 G.add_edge('0', '1', 8)
