@@ -2,6 +2,7 @@ from pprint import pprint
 from queue import Queue
 from typing import List, Tuple
 from pprint import pprint
+import time
 
 class GraphMatrix:
 
@@ -26,7 +27,10 @@ class GraphMatrix:
         return True
 
     def floyd_warshall(self) -> None:
+        print(f'Ejecutando algoritmo Floyd-Warshall...')
+        start = time.time()
         for i in range(self.n):
+            print(i)
             from_x = self.cost_mtrx[i]
             to_x = [row[i] for row in self.cost_mtrx]
             for j in range(self.n):
@@ -35,12 +39,14 @@ class GraphMatrix:
                         if (to_x[j] + from_x[k]) < self.cost_mtrx[j][k]:
                             self.cost_mtrx[j][k] = to_x[j] + from_x[k]
                             self.path_mtrx[j][k] = self.names[i]
-    
+        finish = time.time()
+        print(f'Tiempo de ejecución de Floyd-Warshall: {finish-start}')
+
     def top_10_longest_shortest_paths(self, vertex: str) -> List[str]:
         i = self.names.index(vertex)
         path_costs = [cost for cost in self.cost_mtrx[i] if cost < float('inf')]
         path_costs.sort(reverse=True)
-        top_10 = path_costs[:3]
+        top_10 = path_costs[:10]
         indices = [self.cost_mtrx[i].index(cost) for cost in top_10]
         names = [self.names[index] for index in indices]
         return names, top_10
@@ -58,23 +64,3 @@ class GraphMatrix:
                 return path
         else:
             return []
-            
-G = GraphMatrix(['0', '1', '2', '3', '4', '5', '6', '7'])
-G.add_edge('0', '1', 8)
-G.add_edge('1', '2', 7)
-G.add_edge('1', '5', 7)
-G.add_edge('1', '6', 6)
-G.add_edge('2', '6', 1)
-G.add_edge('3', '5', 1)
-G.add_edge('3', '7', 8)
-G.add_edge('4', '6', 3)
-G.add_edge('5', '6', 7)
-G.add_edge('5', '7', 5)
-G.add_edge('6', '7', 5)
-
-G.floyd_warshall()
-pprint(G.cost_mtrx)
-pprint(G.path_mtrx)
-
-print("Path from 0 to 7")
-print(G.find_path('0', '7'))
