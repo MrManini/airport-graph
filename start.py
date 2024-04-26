@@ -1,4 +1,4 @@
-from graph_matrix import GraphMatrix
+from graph import Graph
 import pandas as pd
 
 airports_df = pd.read_csv('airports.csv')
@@ -6,7 +6,7 @@ distances_df = pd.read_csv('distances.csv')
 
 codes_df = airports_df['Code']
 codes = codes_df.values.tolist()
-G = GraphMatrix(codes)
+G = Graph(codes)
 
 for index, row in distances_df.iterrows():
     vi = row['Airport 1']
