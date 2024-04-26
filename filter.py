@@ -14,6 +14,7 @@ table = {'Airport 1': [],
          'Distance': []
          }
 airports = {'Code': [],
+            'Name': [],
             'City': [],
             'Country': [],
             'Latitude': [],
@@ -40,6 +41,7 @@ for index, row in df.iterrows():
         latitude = row['Source Airport Latitude']
         longitude = row['Source Airport Longitude']
         airports['Code'].append(source)
+        airports['Name'].append(name)
         airports['City'].append(city)
         airports['Country'].append(country)
         airports['Latitude'].append(latitude)
@@ -52,6 +54,7 @@ for index, row in df.iterrows():
         latitude = row['Destination Airport Latitude']
         longitude = row['Destination Airport Longitude']
         airports['Code'].append(destination)
+        airports['Name'].append(name)
         airports['City'].append(city)
         airports['Country'].append(country)
         airports['Latitude'].append(latitude)
