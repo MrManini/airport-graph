@@ -62,7 +62,7 @@ for index, row in df.iterrows():
         codes.append(destination)
 
 distance_df = pd.DataFrame(table)
-distance_df.to_csv('distance.csv', index=False)
+distance_df.to_csv('distances.csv', index=False)
 
 airports_df = pd.DataFrame(airports)
 airports_df.to_csv('airports.csv', index=False)
