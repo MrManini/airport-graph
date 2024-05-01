@@ -1,33 +1,37 @@
 from pprint import pprint
 from queue import Queue
-from typing import List, Tuple
-from pprint import pprint
+from typing import List, Tuple, Any
 import time
 
 class Graph:
 
-    def __init__(self, names: List[str]) -> None:
+    def __init__(self, names: List[Any], directed: bool = False) -> None:
         self.names = names
         self.n = len(self.names)
+        self.directed = directed
         self.ad_mtrx: List[List[float]] = [[0 for i in range(self.n)] for j in range(self.n)]
         self.cost_mtrx: List[List[float]] = [[float('inf') for i in range(self.n)] for j in range(self.n)]
-        self.path_mtrx: List[List[str]] = [list(self.names) for _ in range(self.n)]
+        self.path_mtrx: List[List[Any]] = [list(self.names) for _ in range(self.n)]
         for i in range(self.n):
             self.cost_mtrx[i][i] = 0
             self.path_mtrx[i][i] = '-'
         self.updated = [False] * self.n
 
-    def add_edge(self, initial_v: str, final_v: str, weight: float) -> bool:
+    def add_edge(self, initial_v: Any, final_v: Any, weight: float) -> bool:
         vi = self.names.index(initial_v)
         vf = self.names.index(final_v)
         if not ((0 <= vi < self.n) and (0 <= vf < self.n)):
             return False
+        if self.directed:
+            self.ad_mtrx[vi][vf] = weight
+            self.cost_mtrx[vi][vf] = weight
+            return True
         self.ad_mtrx[vi][vf] = self.ad_mtrx[vf][vi] = weight
         self.cost_mtrx[vi][vf] = weight
         self.cost_mtrx[vf][vi] = weight
         return True
 
-    def dijkstra(self, vertex: str) -> None:
+    def dijkstra(self, vertex: Any) -> None:
         print(f'Ejecutando algoritmo Dijkstra con {vertex}...')
         start = time.time()
         known_list = [False for _ in range(self.n)]
@@ -73,7 +77,7 @@ class Graph:
         self.updated = [True] * self.n
         print(f'Tiempo de ejecución de Floyd-Warshall: {finish-start}')
 
-    def top_10_longest_shortest_paths(self, vertex: str) -> List[str]:
+    def top_10_longest_shortest_paths(self, vertex: Any) -> List[Any]:
         i = self.names.index(vertex)
         path_costs = [cost for cost in self.cost_mtrx[i] if cost < float('inf')]
         path_costs.sort(reverse=True)
@@ -82,7 +86,7 @@ class Graph:
         names = [self.names[index] for index in indices]
         return names, top_10
 
-    def find_path(self, vertex1: str, vertex2: str) -> List[str]:
+    def find_path(self, vertex1: Any, vertex2: Any) -> List[Any]:
         index1 = self.names.index(vertex1)
         index2 = self.names.index(vertex2)
         if self.cost_mtrx[index1][index2] != float('inf'):
@@ -96,7 +100,7 @@ class Graph:
         else:
             return []
 
-    def find_path_weight(self, path: List[str]) -> float:
+    def find_path_weight(self, path: List[Any]) -> float:
         total_weight = 0
         for i in range(len(path)-1):
             index1 = self.names.index(path[i])
