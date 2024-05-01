@@ -1,7 +1,7 @@
 from graph import Graph
 import pandas as pd
-import time
 
+print('Cargando datos...')
 airports_df = pd.read_csv('airports.csv')
 distances_df = pd.read_csv('distances.csv')
 
@@ -14,6 +14,8 @@ for index, row in distances_df.iterrows():
     vf = row['Airport 2']
     w = row['Distance']
     G.add_edge(vi, vf, w)
+matrix_df = pd.read_csv('cost_matrix.csv')
+G.cost_mtrx = matrix_df.values.tolist()
 
 def is_real_airport(code: str) -> bool:
     info_df = airports_df[airports_df['Code'] == code]
@@ -70,6 +72,7 @@ def path_to_second_airport(source: str, destination: str) -> None:
 code = 'kjaskjjks'
 while code:
     code = input('Ingrese el código de un aeropuerto o presione enter para salir: ')
+    code = code.upper()
     if code:
         airport_exists = show_airport_info(code)
         if airport_exists:
@@ -77,28 +80,22 @@ while code:
             print('1. Hallar el top 10 areopuertos con más largos caminos mínimos.')
             print(f'2. Buscar camino mínimo de {code} a otro aeropuerto.')
             print('Presione enter para no hacer ninguna opción.')
-            selection = int(input())
+            try:
+                selection = int(input())
 
-            if selection == 1:
-                if any(not updated for updated in G.updated):
-                    start = time.time()
-                    for i in range(G.n):
-                        if not G.updated[i]:
-                            G.dijkstra(G.names[i])
-                            done = G.updated.count(True)
-                            print(f'Análisis {round(done/G.n * 100, 2)}% terminado. ({done}/{G.n})')
-                    end = time.time()
-                    print(f'Tiempo total de ejecución: {end - start}.')
-                biggest_airport_distances(code)
-            elif selection == 2:
-                destination = input('Ingrese el código de aeropuerto destino: ')
-                if is_real_airport(destination):
-                    ver_index = G.names.index(code)
-                    if not G.updated[ver_index]:
-                        G.dijkstra(code)
-                    path_to_second_airport(code, destination)
-                else:
-                    print('No es un código válido.')
+                if selection == 1:
+                    biggest_airport_distances(code)
+                elif selection == 2:
+                    destination = input('Ingrese el código de aeropuerto destino: ')
+                    if is_real_airport(destination):
+                        ver_index = G.names.index(code)
+                        if not G.updated[ver_index]:
+                            G.dijkstra(code)
+                        path_to_second_airport(code, destination)
+                    else:
+                        print(f'{code} no es un aeropuerto válido.')
+            except:
+                print('Ingrese una opción válida.')
         else:
             print(f'{code} no es un aeropuerto válido.')
     
