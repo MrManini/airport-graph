@@ -1,5 +1,8 @@
 from graph import Graph
 import pandas as pd
+import simplekml
+import os
+import subprocess
 
 print('Cargando datos...')
 airports_df = pd.read_csv('airports.csv')
@@ -14,8 +17,6 @@ for index, row in distances_df.iterrows():
     vf = row['Airport 2']
     w = row['Distance']
     G.add_edge(vi, vf, w)
-matrix_df = pd.read_csv('cost_matrix.csv')
-G.cost_mtrx = matrix_df.values.tolist()
 
 def is_real_airport(code: str) -> bool:
     info_df = airports_df[airports_df['Code'] == code]
@@ -64,8 +65,32 @@ def path_to_second_airport(source: str, destination: str) -> None:
         print(path_string)
         distance = G.find_path_weight(path)
         print(f'Distancia total: {distance} km.')
+        kml = simplekml.Kml()
         for i in range(len(path)):
+            airport_coords = (
+                airports_df[airports_df['Code'] == path[i]]['Longitude'].values[0],
+                airports_df[airports_df['Code'] == path[i]]['Latitude'].values[0],
+                1000
+                )
+            point = kml.newpoint(name=path[i], coords=[airport_coords])
+            point.style.iconstyle.icon.href = 'http://www.gstatic.com/mapspro/images/stock/1417-trans-airport.png'
+            point.style.iconstyle.scale = 2
+            point.style.labelstyle.scale = 3
+            if i > 0:
+                last_coords = (
+                    airports_df[airports_df['Code'] == path[i-1]]['Longitude'].values[0],
+                    airports_df[airports_df['Code'] == path[i-1]]['Latitude'].values[0],
+                    1000
+                    )
+                distance_between_airports = G.find_path_weight([path[i-1], path[i]])
+                line = kml.newlinestring(name=f'{path[i-1]} - {path[i]}', coords=[last_coords, airport_coords])
+                line.style.linestyle.width = 3
+                line.altitudemode = simplekml.AltitudeMode.clamptoground
+                line.tessellate = 1
+                line.style.linestyle.color = simplekml.Color.red
+                line.description = f'Distancia: {round(distance_between_airports)} km.'
             show_airport_info(path[i])
+        return kml
     else:
         print(f'No hay caminos que conecten de {source} a {destination}.')
 
@@ -76,25 +101,39 @@ while code:
     if code:
         airport_exists = show_airport_info(code)
         if airport_exists:
+            kml = simplekml.Kml()
+            airport_coords = [
+                (airports_df[airports_df['Code'] == code]['Longitude'].values[0],
+                  airports_df[airports_df['Code'] == code]['Latitude'].values[0])
+                  ]
+            source = kml.newpoint(name=code, coords=airport_coords)
+            source.style.iconstyle.icon.href = 'http://www.gstatic.com/mapspro/images/stock/1417-trans-airport.png'
+            kml.save('graph_map.kml')
+            kml_path = os.path.abspath('graph_map.kml')
+            #subprocess.run(['google-earth-pro', kml_path])
             print('Opciones')
             print('1. Hallar el top 10 areopuertos con más largos caminos mínimos.')
             print(f'2. Buscar camino mínimo de {code} a otro aeropuerto.')
             print('Presione enter para no hacer ninguna opción.')
             try:
                 selection = int(input())
-
+                ver_index = G.names.index(code)
+                if not G.updated[ver_index]:
+                    G.dijkstra(code)
                 if selection == 1:
                     biggest_airport_distances(code)
                 elif selection == 2:
                     destination = input('Ingrese el código de aeropuerto destino: ')
+                    destination = destination.upper()
                     if is_real_airport(destination):
-                        ver_index = G.names.index(code)
-                        if not G.updated[ver_index]:
-                            G.dijkstra(code)
-                        path_to_second_airport(code, destination)
+                        path_kml = path_to_second_airport(code, destination)
+                        path_kml.save('path_map.kml')
+                        kml_path = os.path.abspath('path_map.kml')
+                        subprocess.run(['google-earth-pro', kml_path])
                     else:
-                        print(f'{code} no es un aeropuerto válido.')
-            except:
+                        print(f'{destination} no es un aeropuerto válido.')
+            except Exception as e:
+                print(e)
                 print('Ingrese una opción válida.')
         else:
             print(f'{code} no es un aeropuerto válido.')
